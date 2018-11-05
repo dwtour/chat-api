@@ -2,6 +2,7 @@ package TCPserver
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -24,7 +25,12 @@ func Listen(){
 //testing connection
 func handleRequest(conn net.Conn) {
 	buf := make([]byte, 1024)
-	conn.Read(buf)
-	conn.Write(buf)
+	n, err := conn.Read(buf);
+	for  err != io.EOF {
+		fmt.Println(string(buf[:n]) + "(Message received).")
+		n, err = conn.Read(buf);
+	}
+	fmt.Println("All messages received.")
 	conn.Close()
 }
+
