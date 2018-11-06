@@ -25,10 +25,15 @@ func Listen(){
 //testing connection
 func handleRequest(conn net.Conn) {
 	buf := make([]byte, 1024)
-	n, err := conn.Read(buf);
-	for  err != io.EOF {
+	for {
+		n, err := conn.Read(buf)
+		if err != nil {
+			if err != io.EOF {
+				fmt.Printf("Read error - %s\n", err)
+			}
+			break
+		}
 		fmt.Println(string(buf[:n]) + "(Message received).")
-		n, err = conn.Read(buf);
 	}
 	fmt.Println("All messages received.")
 	conn.Close()
