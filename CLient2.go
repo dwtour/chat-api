@@ -7,11 +7,10 @@ import (
 
 func main(){
 	conn, _ := net.Dial("tcp", ":8080")
-	buf := make([]byte, 1024)
 	defer conn.Close()
-	n, _ := conn.Read(buf)
-	fmt.Println(string(buf[:n]))
-	conn.Write([]byte("2: how are you\n"))
-	n, _ = conn.Read(buf)
-	fmt.Println(string(buf[:n]))
+	buf := make([]byte, 1024)
+	for {
+		n, _ := conn.Read(buf)
+		fmt.Println("another user: ", string(buf[:n]))
+	}
 }
