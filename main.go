@@ -15,6 +15,5 @@ func main(){
 		panic("error connect")
 	}
 	fmt.Println("Connection is established")
-
 	TCPserver.Listen()
 }

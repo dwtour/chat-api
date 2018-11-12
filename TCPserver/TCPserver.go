@@ -1,6 +1,7 @@
 package TCPserver
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/dwtour/chat-api/db"
 	"github.com/satori/go.uuid"
@@ -9,7 +10,7 @@ import (
 	"net"
 )
 
-var listConnect = make(map[string]net.Conn)
+var connections = make(map[string]net.Conn)
 
 func Listen(){
 	listener, err := net.Listen("tcp", ":8080")
@@ -24,8 +25,8 @@ func Listen(){
 			log.Fatal("Error accepting", err.Error())
 		}
 
-		listConnect[conn.RemoteAddr().String()] = conn
-		ShowAllMessagesToNewUser(conn)
+		connections[conn.RemoteAddr().String()] = conn
+		getMessages(conn)
 
 		go handleRequest(conn)
 	}
@@ -42,35 +43,36 @@ func handleRequest(conn net.Conn) {
 			break
 		}
 		hash := uuid.NewV4().String()
-		//fmt.Println(hash)
 
-		db.Conn.RPush("messages", hash)
-		key := "message:"+hash+":"+conn.RemoteAddr().String()
+		key := fmt.Sprintf("message:%s:%s", hash, conn.RemoteAddr().String())
+		db.Conn.RPush("messages", key)
 		db.Conn.Set(key, buf, 0)
 		fmt.Println(db.Conn.Get(key))
 
 		go sendMessage(buf[:n], conn)
 	}
-	delete(listConnect, conn.RemoteAddr().String())
-	fmt.Println("User ", conn.RemoteAddr().String()," disconnected.")
+	delete(connections, conn.RemoteAddr().String())
+	fmt.Printf("User %s disconnected.\n", conn.RemoteAddr().String())
 
 	conn.Close()
 }
 
 func sendMessage(mes []byte, conn net.Conn) {
-	for _, v := range listConnect {
-		if (v != conn) {
+	for _, v := range connections {
+		if v != conn {
 			v.Write(mes)
 		}
 	}
 }
 
-func ShowAllMessagesToNewUser(conn net.Conn) {
-	listMessage, _ := db.Conn.LRange("messages",0,-1).Result()
-	for _, v:= range listMessage {
-		key := db.Conn.Keys("message:"+v+"*").Val()[0]
+func getMessages(conn net.Conn) {
+	messages, _ := db.Conn.LRange("messages",0,-1).Result()
+	output := make([][]byte, 0)
+	for _, key:= range messages {
 		mes, _:= db.Conn.Get(key).Bytes()
-		conn.Write(mes)
-		fmt.Println("message ", key, string(mes), "is sent")
+		output = append(output, mes)
+		fmt.Printf("%s %s is sent\n", key, string(mes))
 	}
+	messagesOut := bytes.Join(output, []byte(""))
+	conn.Write(messagesOut)
 }
