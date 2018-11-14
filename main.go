@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dwtour/chat-api/TCPserver"
 	"github.com/dwtour/chat-api/db"
+	_"github.com/dwtour/chat-api/routers"
 )
 
 

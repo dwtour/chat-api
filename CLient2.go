@@ -18,7 +18,7 @@ func main(){
 			fmt.Printf("Error - %s", err)
 			break
 		}
-		var dat[]interface{}
+		var dat []map[string]interface{}
 		json.Unmarshal(buf[:n], &dat)
 		fmt.Println("another user: ", dat[0])
 		fmt.Println("another user: ", dat[1])

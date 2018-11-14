@@ -8,9 +8,16 @@ import (
 	"io"
 	"log"
 	"net"
+	"strings"
 )
 
 var connections = make(map[string]net.Conn)
+
+type Message struct {
+	Body string
+	IP string
+	Hash string
+}
 
 func Listen(){
 	listener, err := net.Listen("tcp", ":8080")
@@ -43,8 +50,8 @@ func handleRequest(conn net.Conn) {
 			break
 		}
 		hash := uuid.NewV4().String()
-
 		key := fmt.Sprintf("message:%s:%s", hash, conn.RemoteAddr().String())
+
 		db.Conn.RPush("messages", key)
 		db.Conn.Set(key, buf[:n], 0)
 		fmt.Println(db.Conn.Get(key))
@@ -67,13 +74,16 @@ func sendMessage(mes []byte, conn net.Conn) {
 
 func getMessages(conn net.Conn) {
 	messages, _ := db.Conn.LRange("messages",0,-1).Result()
-	output := make([]string, 0)
+	output := make([]Message, 0)
 	for _, key:= range messages {
-		mes:= fmt.Sprintf("%s", db.Conn.Get(key).Val())
-		output = append(output, mes)
+		mes:= db.Conn.Get(key).Val()
+		partsKey := strings.Split(key, ":")
+		fmt.Println("parts of key", partsKey)
+		output = append(output, Message{Body: mes, IP: partsKey[2], Hash: partsKey[1]})
 		fmt.Printf("%s %s is sent\n", key, mes)
 	}
+	fmt.Println(output)
 	messagesJSON, _ := json.Marshal(output)
-	//fmt.Println(string(messagesJSON))
+	fmt.Println(string(messagesJSON))
 	conn.Write(messagesJSON)
 }
