@@ -20,8 +20,8 @@ type MessageJSON struct {
 	Data []Message `json:"data"`
 }
 
-type PostDeal struct {
-	Message string
+type PostMessage struct {
+	Message string `json:"message"`
 }
 
 func GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +47,7 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		req, _ := ioutil.ReadAll(r.Body)
-		m := PostDeal{}
+		m := PostMessage{}
 		json.Unmarshal(req, &m)
 		fmt.Println(m)
 
