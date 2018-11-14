@@ -11,27 +11,34 @@ import (
 )
 
 type Message struct {
-	Body string
-	IP string
-	Hash string
+	Body string `json:"body"`
+	IP string `json:"ip"`
+	Hash string `json:"hash"`
 }
 
+type MessageJSON struct {
+	Data []Message `json:"data"`
+}
+
+type PostDeal struct {
+	Message string
+}
 
 func GetHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		messages, _ := db.Conn.LRange("messages", 0, -1).Result()
-		output := make([]Message, 0)
+		m := make([]Message, 0)
 		for _, key := range messages {
-			mes := db.Conn.Get(key).Val()
-			partsKey := strings.Split(key, ":")
-			fmt.Println("parts of key", partsKey)
 
-			output = append(output, Message{Body: mes, IP: partsKey[2], Hash: partsKey[1]})
-			fmt.Printf("%s %s is sent\n", key, mes)
+			m = append(m, Message{
+				Body: db.Conn.Get(key).Val(),
+				IP: strings.Split(key, ":")[2],
+				Hash: strings.Split(key, ":")[1]})
 		}
-		messagesJSON, _ := json.Marshal(output)
 
-		w.Write(messagesJSON)
+		resp, _ := json.Marshal(&MessageJSON{Data: m})
+
+		w.Write(resp)
 	}  else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -39,21 +46,24 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		message, _ := ioutil.ReadAll(r.Body)
+		req, _ := ioutil.ReadAll(r.Body)
+		m := PostDeal{}
+		json.Unmarshal(req, &m)
+		fmt.Println(m)
 
 		hash := uuid.NewV4().String()
-		key := fmt.Sprintf("message:%s:%s", hash, r.URL.Host)
-		fmt.Println("host", r.URL.Host)
+		key := fmt.Sprintf("message:%s:%s", hash, r.Host)
+		fmt.Println(r.Host)
 
 		db.Conn.RPush("messages", key)
-		db.Conn.Set(key, message, 0)
+		db.Conn.Set(key, m.Message, 0)
 
-		mes := db.Conn.Get(key).Val()
-		partsKey := strings.Split(key, ":")
+		resp, _ := json.Marshal(&Message{
+			Body: db.Conn.Get(key).Val(),
+			IP: strings.Split(key, ":")[2],
+			Hash: strings.Split(key, ":")[1]})
 
-		output:=  &Message{Body: mes, IP: partsKey[2], Hash: partsKey[1]}
-		MessageJSON, _ := json.Marshal(output)
-		w.Write(MessageJSON)
+		w.Write(resp)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
