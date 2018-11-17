@@ -54,7 +54,6 @@ func handleRequest(conn net.Conn) {
 
 		db.Conn.RPush("messages", key)
 		db.Conn.Set(key, buf[:n], 0)
-		fmt.Println(db.Conn.Get(key))
 
 		go sendMessage(buf[:n], conn)
 	}
@@ -78,12 +77,8 @@ func getMessages(conn net.Conn) {
 	for _, key:= range messages {
 		mes:= db.Conn.Get(key).Val()
 		partsKey := strings.Split(key, ":")
-		fmt.Println("parts of key", partsKey)
 		output = append(output, Message{Body: mes, IP: partsKey[2], Hash: partsKey[1]})
-		fmt.Printf("%s %s is sent\n", key, mes)
 	}
-	fmt.Println(output)
 	messagesJSON, _ := json.Marshal(output)
-	fmt.Println(string(messagesJSON))
 	conn.Write(messagesJSON)
 }

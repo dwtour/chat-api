@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/dwtour/chat-api/TCPserver"
 	"github.com/dwtour/chat-api/db"
-	_"github.com/dwtour/chat-api/routers"
+	"github.com/dwtour/chat-api/routers"
+	_ "github.com/dwtour/chat-api/routers"
 )
 
 
@@ -16,5 +16,7 @@ func main(){
 		panic("error connect")
 	}
 	fmt.Println("Connection is established")
-	TCPserver.Listen()
+
+	routers.Run()
+	//TCPserver.Listen()
 }
