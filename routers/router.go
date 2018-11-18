@@ -14,5 +14,6 @@ func Run() {
 	e := echo.New()
 	e.GET("/messages", controllers.GetHandler)
 	e.POST("/message", controllers.PostHandler)
+	e.GET("/ws", controllers.WSHandler)
 	e.Start(":1323")
 }

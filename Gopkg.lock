@@ -19,6 +19,14 @@
   version = "v6.14.2"
 
 [[projects]]
+  digest = "1:09aa5dd1332b93c96bde671bafb053249dc813febf7d5ca84e8f382ba255d67d"
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  pruneopts = ""
+  revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
+  version = "v1.4.0"
+
+[[projects]]
   digest = "1:ee8972a7d8929386df488da75ef0a670bbd94890a0da2a1c92fc0c53e99bd62d"
   name = "github.com/labstack/echo"
   packages = ["."]
@@ -101,6 +109,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/go-redis/redis",
+    "github.com/gorilla/websocket",
     "github.com/labstack/echo",
     "github.com/satori/go.uuid",
   ]
