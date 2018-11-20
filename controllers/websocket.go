@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
+	"net/http"
 )
 var (
 	connections = make(map[string]*websocket.Conn)
@@ -13,15 +14,16 @@ var (
 )
 
 func WSHandler(c echo.Context) error {
-	//loop or return?
-	for {
-		ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-		if err != nil {
-			return err
-		}
-		//defer ws.Close()
 
-		connections[ws.RemoteAddr().String()] = ws
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	for {
+		ws, _ := upgrader.Upgrade(c.Response(), c.Request(), nil)
+		//if err != nil {
+		  //  return err
+		//}
+		if ws != nil {
+			connections[ws.RemoteAddr().String()] = ws
+		}
 	}
 }
 
