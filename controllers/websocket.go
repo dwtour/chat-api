@@ -16,14 +16,13 @@ var (
 func WSHandler(c echo.Context) error {
 
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-	for {
-		ws, _ := upgrader.Upgrade(c.Response(), c.Request(), nil)
-		//if err != nil {
-		  //  return err
-		//}
-		if ws != nil {
-			connections[ws.RemoteAddr().String()] = ws
-		}
+	ws, _ := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if ws != nil {
+		connections[ws.RemoteAddr().String()] = ws
 	}
+	for {
+		ws.ReadMessage()
+	}
+
 }
 
